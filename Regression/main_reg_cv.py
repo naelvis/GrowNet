@@ -5,6 +5,7 @@ import copy
 import torch
 import torch.nn as nn
 import time
+#sys.path.append(os.path.join(os.getcwd(), 'Regression'))
 from data.sparseloader import DataLoader
 from data.data import LibSVMData, LibCSVData, LibSVMRegData
 from data.sparse_data import LibSVMDataSp
@@ -42,7 +43,7 @@ if not opt.cuda:
 
 # prepare the dataset
 def get_data():
-    if opt.data in ['ca_housing', 'ailerons', 'YearPredictionMSD', 'slice_localization']:
+    if opt.data in ['ca_housing', 'ailerons', 'YearPredictionMSD', 'slice_localization', 'datwTestTrainSplit']:
         train = LibSVMRegData(opt.tr, opt.feat_d, opt.normalization)
         test = LibSVMRegData(opt.te, opt.feat_d, opt.normalization)
         val = []

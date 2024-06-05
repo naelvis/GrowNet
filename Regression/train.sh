@@ -4,7 +4,7 @@
 # ca_housing 8
 # YearPredictionMSD 90
 # slice_localization 384
-dataset=YearPredictionMSD
+dataset=datwTestTrainSplit
 
 BASEDIR=$(dirname "$0")
 OUTDIR="${BASEDIR}/ckpt/"
