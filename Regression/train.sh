@@ -6,8 +6,6 @@
 # slice_localization 384
 dataset=datwTestTrainSplit
 
-echo "${dataset}"
-
 BASEDIR=$(dirname "$0")
 OUTDIR="${BASEDIR}/ckpt/"
 
