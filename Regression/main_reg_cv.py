@@ -141,11 +141,11 @@ if __name__ == "__main__":
                     x= x.cuda()
                     y = torch.as_tensor(y, dtype=torch.float32).cuda().view(-1, 1)
                 middle_feat, out = net_ensemble.forward(x)
-                out = torch.as_tensor(out, dtype=torch.float32).cuda().view(-1, 1)
+                out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
                 grad_direction = -(out-y)
 
                 _, out = model(x, middle_feat)
-                out = torch.as_tensor(out, dtype=torch.float32).cuda().view(-1, 1)
+                out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
                 loss = loss_f1(net_ensemble.boost_rate*out, grad_direction)  # T
 
                 model.zero_grad()
@@ -174,7 +174,7 @@ if __name__ == "__main__":
                     if opt.cuda:
                         x, y = x.cuda(), y.cuda().view(-1, 1)
                     _, out = net_ensemble.forward_grad(x)
-                    out = torch.as_tensor(out, dtype=torch.float32).cuda().view(-1, 1)
+                    out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
                     
                     loss = loss_f1(out, y) 
                     optimizer.zero_grad()

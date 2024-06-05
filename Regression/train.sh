@@ -15,13 +15,16 @@ then
     mkdir -p ${OUTDIR}
 fi    
 
+# feat_d indicates number of features
+# num_nets was 40
+
 CUDA_VISIBLE_DEVICES=0 python -u main_reg_cv.py \
-    --feat_d 90 \
+    --feat_d 8 \
     --hidden_d 32 \
     --boost_rate 1 \
     --lr 0.005 \
     --L2 .0e-3 \
-    --num_nets 40 \
+    --num_nets 5 \
     --data ${dataset} \
     --tr ${BASEDIR}/../data/${dataset}_tr.npz \
     --te ${BASEDIR}/../data/${dataset}_te.npz \
@@ -30,5 +33,5 @@ CUDA_VISIBLE_DEVICES=0 python -u main_reg_cv.py \
     --correct_epoch 1 \
     --normalization True \
     --cv True \
-    --out_f ${OUTDIR}/${dataset}_cls.pth \
-    --cuda
+    --out_f ${OUTDIR}/${dataset}_cls.pth #\
+#    --cuda False
