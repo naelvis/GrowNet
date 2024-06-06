@@ -73,7 +73,7 @@ class DynamicNet(object):
 
     @classmethod
     def from_file(cls, path, builder):
-        d = torch.load(path)
+        d = torch.load(path) 
         net = DynamicNet(d['c0'], d['lr'])
         net.boost_rate = d['boost_rate']
         for stage, m in enumerate(d['models']):
