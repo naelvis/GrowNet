@@ -5,6 +5,8 @@ import copy
 import torch
 import torch.nn as nn
 import time
+import random #set seed
+import joblib #save scaler
 #sys.path.append(os.path.join(os.getcwd(), 'Regression'))
 from data.sparseloader import DataLoader
 from data.data import LibSVMData, LibCSVData, LibSVMRegData
@@ -70,6 +72,7 @@ def get_data():
         test.feat = scaler.transform(test.feat)
         if opt.cv:
             val.feat = scaler.transform(val.feat)
+        joblib.dump(scaler, './ckpt/' + opt.data +'_scaler.pkl')
     print(f'#Train: {len(train)}, #Val: {len(val)} #Test: {len(test)}')
     return train, test, val
 
@@ -109,12 +112,23 @@ def init_gbnn(train):
     #print(f'Blind Logloss: {blind_acc}')
     return float(np.log(positive / negative))
 
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
 if __name__ == "__main__":
+
+    set_seed(42)
 
     train, test, val = get_data()
     N = len(train)
     print(opt.data + ' training and test datasets are loaded!')
-    train_loader = DataLoader(train, opt.batch_size, shuffle=True, drop_last=False, num_workers=2)
+    train_loader = DataLoader(train, opt.batch_size, shuffle=True, drop_last=False, num_workers=2) 
     test_loader = DataLoader(test, opt.batch_size, shuffle=False, drop_last=False, num_workers=2)
     if opt.cv:
         val_loader = DataLoader(val, opt.batch_size, shuffle=True, drop_last=False, num_workers=2)

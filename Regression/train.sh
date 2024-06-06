@@ -24,7 +24,7 @@ CUDA_VISIBLE_DEVICES=0 python -u main_reg_cv.py \
     --boost_rate 1 \
     --lr 0.005 \
     --L2 .0e-3 \
-    --num_nets 2 \
+    --num_nets 40 \
     --data ${dataset} \
     --tr ${BASEDIR}/../data/${dataset}_tr.npz \
     --te ${BASEDIR}/../data/${dataset}_te.npz \
