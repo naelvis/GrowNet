@@ -14,7 +14,7 @@ class DynamicNet(object):
         self.models = []
         self.c0 = c0
         self.lr = lr
-        self.boost_rate  = nn.Parameter(torch.tensor(lr, requires_grad=True, device="cpu")) #because poor
+        self.boost_rate  = nn.Parameter(torch.tensor(lr, requires_grad=True, device="cpu", dtype=torch.float32)) #because poor
 
     def add(self, model):
         self.models.append(model)
