@@ -23,7 +23,7 @@ from torch.optim import SGD, Adam
 
 feat_d = 8 #for datwtesttrainsplit
 hidden_d = 32 #default from grownet
-boost_rate = 1.0 #default from grownet. it is important that this is FLOAT
+boost_rate = 1.0 #default from grownet. it is important that this is
 lr = 0.005 #default from grownet
 num_nets = 40 #boosting rounds
 data = "datwTestTrainSplit"
@@ -160,95 +160,95 @@ c0 = np.mean(train.label)  #init_gbnn(train)
 net_ensemble = DynamicNet(c0, opt.boost_rate)
 loss_f1 = nn.MSELoss()
 loss_models = torch.zeros((opt.num_nets, 3))
-    for stage in range(opt.num_nets):
-        t0 = time.time()
-        model = MLP_2HL.get_model(stage, opt)  # Initialize the model_k: f_k(x), multilayer perception v2
-        if opt.cuda:
-            model.cuda()
+for stage in range(opt.num_nets):
+    t0 = time.time()
+    model = MLP_2HL.get_model(stage, opt)  # Initialize the model_k: f_k(x), multilayer perception v2
+    if opt.cuda:
+        model.cuda()
 
-        optimizer = get_optim(model.parameters(), opt.lr, opt.L2)
-        net_ensemble.to_train() # Set the models in ensemble net to train mode
-        stage_mdlloss = []
-        for epoch in range(opt.epochs_per_stage):
-            for i, (x, y) in enumerate(train_loader):
+    optimizer = get_optim(model.parameters(), opt.lr, opt.L2)
+    net_ensemble.to_train() # Set the models in ensemble net to train mode
+    stage_mdlloss = []
+    for epoch in range(opt.epochs_per_stage):
+        for i, (x, y) in enumerate(train_loader):
                 
-                if opt.cuda:
-                    x= x.cuda()
-                    y = torch.as_tensor(y, dtype=torch.float32).cuda().view(-1, 1)
-                middle_feat, out = net_ensemble.forward(x)
-                out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
-                grad_direction = -(out-y)
+            if opt.cuda:
+                x= x.cuda()
+                y = torch.as_tensor(y, dtype=torch.float32).cuda().view(-1, 1)
+            middle_feat, out = net_ensemble.forward(x)
+            out = torch.as_tensor(out, dtype=torch.float32).view(-1, 1)
+            grad_direction = -(out-y)
 
-                _, out = model(x, middle_feat)
-                out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
-                loss = loss_f1(net_ensemble.boost_rate*out, grad_direction)  # T
+            _, out = model(x, middle_feat)
+            out = torch.as_tensor(out, dtype=torch.float32).view(-1, 1)
+            loss = loss_f1(net_ensemble.boost_rate*out, grad_direction)  # T
 
-                model.zero_grad()
-                loss.backward()
-                optimizer.step()
-                stage_mdlloss.append(loss.item()*len(y))
+            model.zero_grad()
+            loss.backward()
+            optimizer.step()
+            stage_mdlloss.append(loss.item()*len(y))
 
-        net_ensemble.add(model)
-        sml = np.sqrt(np.sum(stage_mdlloss)/N)
+    net_ensemble.add(model)
+    sml = np.sqrt(np.sum(stage_mdlloss)/N)
         
 
 
-        lr_scaler = 3
-        # fully-corrective step
-        stage_loss = []
-        if stage > 0:
-            # Adjusting corrective step learning rate 
-            if stage % 15 == 0:
-                #lr_scaler *= 2
-                opt.lr /= 2
-                opt.L2 /= 2
-            optimizer = get_optim(net_ensemble.parameters(), opt.lr / lr_scaler, opt.L2)
-            for _ in range(opt.correct_epoch):
-                stage_loss = []
-                for i, (x, y) in enumerate(train_loader):
-                    if opt.cuda:
-                        x, y = x.cuda(), y.cuda().view(-1, 1)
-                    _, out = net_ensemble.forward_grad(x)
-                    out = torch.as_tensor(out, dtype=torch.float32).cpu().view(-1, 1)
+    lr_scaler = 3
+    # fully-corrective step
+    stage_loss = []
+    if stage > 0:
+        # Adjusting corrective step learning rate 
+        if stage % 15 == 0:
+            #lr_scaler *= 2
+            opt.lr /= 2
+            opt.L2 /= 2
+        optimizer = get_optim(net_ensemble.parameters(), opt.lr / lr_scaler, opt.L2)
+        for _ in range(opt.correct_epoch):
+            stage_loss = []
+            for i, (x, y) in enumerate(train_loader):
+                 if opt.cuda:
+                    x, y = x.cuda(), y.cuda().view(-1, 1)
+                _, out = net_ensemble.forward_grad(x)
+                out = torch.as_tensor(out, dtype=torch.float32).view(-1, 1)
                     
-                    loss = loss_f1(out, y) 
-                    optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
-                    stage_loss.append(loss.item()*len(y))
-        #print(net_ensemble.boost_rate)
-        # store model
-        elapsed_tr = time.time()-t0
-        sl = 0
-        if stage_loss != []:
-            sl = np.sqrt(np.sum(stage_loss)/N)
+                loss = loss_f1(out, y) 
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                stage_loss.append(loss.item()*len(y))
+    #print(net_ensemble.boost_rate)
+    # store model
+    elapsed_tr = time.time()-t0
+    sl = 0
+    if stage_loss != []:
+        sl = np.sqrt(np.sum(stage_loss)/N)
 
-        print(f'Stage - {stage}, training time: {elapsed_tr: .1f} sec, model MSE loss: {sml: .5f}, Ensemble Net MSE Loss: {sl: .5f}')
+    print(f'Stage - {stage}, training time: {elapsed_tr: .1f} sec, model MSE loss: {sml: .5f}, Ensemble Net MSE Loss: {sl: .5f}')
 
-        net_ensemble.to_file(opt.out_f)
-        net_ensemble = DynamicNet.from_file(opt.out_f, lambda stage: MLP_2HL.get_model(stage, opt))
+    net_ensemble.to_file(opt.out_f)
+    net_ensemble = DynamicNet.from_file(opt.out_f, lambda stage: MLP_2HL.get_model(stage, opt))
 
-        if opt.cuda:
-            net_ensemble.to_cuda()
-        net_ensemble.to_eval() # Set the models in ensemble net to eval mode
+    if opt.cuda:
+        net_ensemble.to_cuda()
+    net_ensemble.to_eval() # Set the models in ensemble net to eval mode
 
-        # Train
-        tr_rmse  = root_mse(net_ensemble, train_loader)
-        if opt.cv:
-            val_rmse = root_mse(net_ensemble, val_loader) 
-            if val_rmse < best_rmse:
-                best_rmse = val_rmse
-                best_stage = stage
+    # Train
+    tr_rmse  = root_mse(net_ensemble, train_loader)
+    if opt.cv:
+        val_rmse = root_mse(net_ensemble, val_loader) 
+        if val_rmse < best_rmse:
+            best_rmse = val_rmse
+            best_stage = stage
 
-        te_rmse  = root_mse(net_ensemble, test_loader)
+    te_rmse  = root_mse(net_ensemble, test_loader)
 
-        print(f'Stage: {stage}  RMSE@Tr: {tr_rmse:.5f}, RMSE@Val: {val_rmse:.5f}, RMSE@Te: {te_rmse:.5f}')
+    print(f'Stage: {stage}  RMSE@Tr: {tr_rmse:.5f}, RMSE@Val: {val_rmse:.5f}, RMSE@Te: {te_rmse:.5f}')
 
-        loss_models[stage, 0], loss_models[stage, 1] = tr_rmse, te_rmse
+    loss_models[stage, 0], loss_models[stage, 1] = tr_rmse, te_rmse
 
-    tr_rmse, te_rmse = loss_models[best_stage, 0], loss_models[best_stage, 1]
-    print(f'Best validation stage: {best_stage}  RMSE@Tr: {tr_rmse:.5f}, final RMSE@Te: {te_rmse:.5f}')
-    loss_models = loss_models.detach().cpu().numpy()
-    fname =  './results/' + opt.data +'_rmse'
-    np.savez(fname, rmse=loss_models, params=opt) 
+tr_rmse, te_rmse = loss_models[best_stage, 0], loss_models[best_stage, 1]
+print(f'Best validation stage: {best_stage}  RMSE@Tr: {tr_rmse:.5f}, final RMSE@Te: {te_rmse:.5f}')
+loss_models = loss_models.detach().cpu().numpy()
+fname =  './results/' + opt.data +'_rmse'
+np.savez(fname, rmse=loss_models, params=opt) 
 
